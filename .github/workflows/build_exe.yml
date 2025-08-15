@@ -54,12 +54,11 @@ jobs:
     - name: Build executable
       run: |
         # 使用 PyInstaller 打包应用程序
-        # --onedir: 生成一个目录而不是单个文件
-        # --windowed: 生成窗口应用程序，不显示控制台
-        # --noupx: 禁用 UPX 压缩
+        # 注意：当使用.spec文件时，不能再使用--onedir、--windowed、--noupx等选项
+        # 这些选项已经在spec文件中定义
         # --clean: 清理之前的构建缓存
         # --log-level=DEBUG: 输出详细的日志信息，便于调试
-        pyinstaller --onedir --windowed --noupx --clean --log-level=DEBUG app.spec
+        pyinstaller --clean --log-level=DEBUG app.spec
         
         # 显示构建目录结构，便于调试
         Get-ChildItem -Path dist -Recurse
