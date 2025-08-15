@@ -44,8 +44,9 @@ jobs:
         python -m pip install --upgrade pip
         # 安装项目依赖
         pip install -r requirements.txt
-        # 安装 PyInstaller 用于打包
-        pip install pyinstaller
+        # 安装最新版本的 PyInstaller 用于打包
+        # 最新版本通常包含误报修复
+        pip install --upgrade pyinstaller
         # 输出安装成功信息
         echo "Dependencies installed successfully"
 
@@ -90,6 +91,17 @@ jobs:
         }
 
     # 步骤6: 上传构建产物
+    # 步骤6: 可选 - 数字签名 (在本地环境中执行)
+    # 注意: 由于安全原因，不建议在CI环境中存储签名证书
+    # 以下步骤仅作为本地签名的参考
+    - name: Sign executable (local only)
+      if: false  # 永远不在CI中执行
+      run: |
+        # 本地签名示例命令
+        # signtool sign /f certificate.pfx /p password /t http://timestamp.digicert.com dist/app/html_merge_tool.exe
+        echo "数字签名步骤已跳过，建议在本地环境中执行"
+
+    # 步骤7: 上传构建产物
     - name: Upload artifact
       # 使用官方的 upload-artifact 动作，用于上传构建产物
       uses: actions/upload-artifact@v4

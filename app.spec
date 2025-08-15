@@ -28,13 +28,20 @@ a = Analysis(
     # 钩子配置字典
     hooksconfig={},
     # 运行时钩子文件列表，这些脚本会在应用启动时执行
-    runtime_hooks=[],
+    # 添加一个运行时钩子来减少误报
+    runtime_hooks=['runtime_hook.py'],
+    # 钩子配置字典
+    hooksconfig={'distutils': {'noarchive': True}},
     # 要排除的模块列表
-    excludes=[],
-    # 是否不将所有 Python 模块打包成一个归档文件
-    noarchive=False,
+    # 排除一些可能被误报为病毒的模块
+    # 排除一些可能被误报为病毒的模块
+    excludes=['cryptography', 'pycrypto', 'pycryptodome', 'pynacl', 'win32api', 'win32con', 'win32gui'],
+    # 不将所有 Python 模块打包成一个归档文件
+    # 非归档模式可以减少误报率
+    noarchive=True,
     # 优化级别 (0=无优化, 1=基本优化, 2=额外优化)
-    optimize=0,
+    # 低优化级别可以减少误报率
+    optimize=1,
 )
 # 创建一个 Python 字节码归档文件 (PYZ)
 # 这个文件包含了所有的 Python 模块的字节码
