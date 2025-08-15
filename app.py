@@ -89,7 +89,7 @@ def main():
     eel.init('web')
 
     # 启动应用
-    eel.start('index.html', size=(700, 800), port=0)
+    eel.start('index.html', size=(700, 800), port=0, mode='default')
 
 if __name__ == '__main__':
     main()
