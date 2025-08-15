@@ -1,0 +1,90 @@
+name: Build Windows Executable
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        echo "Dependencies installed successfully"
+
+    - name: Create icon
+      run: |
+        python create_icon.py
+        if (Test-Path "app_icon.ico") {
+          echo "Icon created successfully"
+        } else {
+          echo "Failed to create icon"
+          exit 1
+        }
+
+    - name: Build executables
+      run: |
+        # Build windowed version for distribution
+        pyinstaller --onefile --windowed gui.py
+        if (Test-Path "dist/gui.exe") {
+          echo "Windowed executable built successfully"
+        } else {
+          echo "Failed to build windowed executable"
+          # List current directory structure for debugging
+          Get-ChildItem -Path . -Recurse
+          exit 1
+        }
+        
+        # Build console version for testing
+        pyinstaller --onefile --distpath dist_console gui.py
+        if (Test-Path "dist_console/gui.exe") {
+          echo "Console executable built successfully"
+        } else {
+          echo "Failed to build console executable"
+          # List current directory structure for debugging
+          Get-ChildItem -Path . -Recurse
+          exit 1
+        }
+
+    - name: Test executable
+      run: |
+        # Find the console executable in the dist_console directory
+        $exePath = Get-ChildItem -Path dist_console -Filter "gui.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+        
+        if ($exePath -and (Test-Path $exePath)) {
+          Write-Host "Testing executable at: $exePath"
+          $output = & $exePath --help 2>&1
+          echo $output
+          if ($LASTEXITCODE -eq 0) {
+            echo "Executable test passed"
+          } else {
+            echo "Executable test failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+        } else {
+          echo "Executable not found in dist_console directory"
+          # List contents of dist_console for debugging
+          Get-ChildItem -Path dist_console -Recurse
+          exit 1
+        }
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: html-merge-tool-exe
+        path: dist/gui.exe
