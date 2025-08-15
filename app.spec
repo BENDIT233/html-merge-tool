@@ -26,8 +26,6 @@ a = Analysis(
 hiddenimports=['eel', 'eel.browsers', 'eel.chrome', 'pkg_resources'],
     # 自定义钩子文件的路径列表
     hookspath=[],
-    # 钩子配置字典
-    hooksconfig={},
     # 运行时钩子文件列表，这些脚本会在应用启动时执行
     # 添加一个运行时钩子来减少误报
     runtime_hooks=['runtime_hook.py'],
