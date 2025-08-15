@@ -30,7 +30,7 @@ jobs:
     - name: Build executable
       run: |
         # Build windowed version
-        pyinstaller --onefile --windowed app.py
+        pyinstaller --onedir --windowed --noupx --clean app.py
         if (Test-Path "dist/app.exe") {
           echo "Executable built successfully"
           # Rename the executable
