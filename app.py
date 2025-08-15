@@ -89,7 +89,13 @@ def main():
     eel.init('web')
 
     # 启动应用
-    eel.start('index.html', size=(700, 800), port=0, mode='default')
+    # 尝试以独立窗口模式启动，如果失败则回退到默认浏览器
+    try:
+        eel.start('index.html', size=(700, 800), port=0, mode='chrome-app')
+    except Exception as e:
+        print(f"无法以独立窗口模式启动: {str(e)}")
+        print("回退到默认浏览器模式")
+        eel.start('index.html', size=(700, 800), port=0, mode='default')
 
 if __name__ == '__main__':
     main()
