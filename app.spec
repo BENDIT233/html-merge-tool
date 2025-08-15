@@ -22,7 +22,12 @@ a = Analysis(
     # 需要包含的数据文件列表 (源路径, 目标路径) 元组
     datas=[],
     # 隐藏的导入模块列表，这些模块不会被自动检测到
-    hiddenimports=['eel'],
+# 添加更多必要的导入以确保在未安装Python的系统上运行
+hiddenimports=['eel', 'eel.browsers', 'eel.chrome', 'pkg_resources'],
+# 额外的搜索路径列表，用于查找模块和依赖
+pathex=['.'],
+# 需要包含的数据文件列表 (源路径, 目标路径) 元组
+datas=[],
     # 自定义钩子文件的路径列表
     hookspath=[],
     # 钩子配置字典
