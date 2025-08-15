@@ -64,10 +64,12 @@ jobs:
         Get-ChildItem -Path dist -Recurse
         
         # 检查可执行文件是否生成成功
-        if (Test-Path "dist/app/app.exe") {
+        # 根据app.spec中的配置，PyInstaller使用单文件模式
+        # 所以可执行文件直接位于dist目录下
+        if (Test-Path "dist/app.exe") {
           echo "Executable built successfully"
           # 重命名可执行文件
-          Rename-Item -Path "dist/app/app.exe" -NewName "html_merge_tool.exe"
+          Rename-Item -Path "dist/app.exe" -NewName "html_merge_tool.exe"
         } else {
           echo "Failed to build executable"
           # 列出当前目录结构用于调试
@@ -78,10 +80,10 @@ jobs:
     # 步骤5: 测试可执行文件
     - name: Test executable
       run: |
-        # 在 dist 目录中查找可执行文件
-        $exePath = Get-ChildItem -Path dist -Filter "html_merge_tool.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+        # 直接检查重命名后的可执行文件
+        $exePath = "dist/html_merge_tool.exe"
         
-        if ($exePath -and (Test-Path $exePath)) {
+        if (Test-Path $exePath) {
           Write-Host "Testing executable at: $exePath"
           # 对于GUI应用程序，无法通过命令行轻松测试
           # 我们只验证文件存在且是可执行的
@@ -94,38 +96,23 @@ jobs:
         }
     
     # 步骤5.1: 额外测试 - 验证文件完整性和依赖项
-    - name: Verify executable dependencies
+    - name: Verify executable
       run: |
-        # 查找可执行文件
-        $exePath = Get-ChildItem -Path dist -Filter "html_merge_tool.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+        # 直接检查重命名后的可执行文件
+        $exePath = "dist/html_merge_tool.exe"
         
-        if ($exePath -and (Test-Path $exePath)) {
-          Write-Host "Verifying dependencies for: $exePath"
+        if (Test-Path $exePath) {
+          Write-Host "Verifying executable: $exePath"
           
           # 检查EXE文件大小（确保它不是空的）
           $fileSize = (Get-Item $exePath).Length
           Write-Host "Executable file size: $fileSize bytes"
           
-          # 检查主要依赖项文件是否存在
-          $appDir = Split-Path -Path $exePath
-          $pythonDll = Join-Path -Path $appDir -ChildPath "python310.dll"
-          $eelModule = Join-Path -Path $appDir -ChildPath "eel"
-          
-          if (Test-Path $pythonDll) {
-            Write-Host "Python runtime DLL found: $pythonDll"
-          } else {
-            Write-Warning "Python runtime DLL not found: $pythonDll"
-          }
-          
-          if (Test-Path $eelModule -PathType Container) {
-            Write-Host "EEL module found: $eelModule"
-          } else {
-            Write-Warning "EEL module not found: $eelModule"
-          }
-          
-          echo "Executable dependency verification completed"
+          # 对于单文件模式打包，Python运行时和依赖项都已嵌入到EXE中
+          # 因此无法单独检查python310.dll和eel模块
+          echo "Single-file executable verification completed"
         } else {
-          echo "Executable not found for dependency verification"
+          echo "Executable not found for verification"
           exit 1
         }
 
@@ -147,5 +134,5 @@ jobs:
       with:
         # 上传产物的名称
         name: html-merge-tool-exe
-        # 要上传的文件路径
-        path: dist/app/html_merge_tool.exe
+        # 要上传的文件路径 - 对于单文件模式
+        path: dist/html_merge_tool.exe
