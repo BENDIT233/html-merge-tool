@@ -29,8 +29,8 @@ jobs:
 
     - name: Build executable
       run: |
-        # Build windowed version with web assets
-        pyinstaller --onefile --windowed --add-data "web;web" app.py
+        # Build windowed version
+        pyinstaller --onefile --windowed app.py
         if (Test-Path "dist/app.exe") {
           echo "Executable built successfully"
           # Rename the executable
