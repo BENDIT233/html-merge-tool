@@ -1,0 +1,111 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Create icon
+      run: |
+        python create_icon.py
+        
+    - name: Build executable
+      run: |
+        python -m PyInstaller app.spec --clean --noconfirm
+        
+    - name: Test executable
+      run: |
+        if (Test-Path "dist\html_merge_tool\html_merge_tool.exe") {
+          Write-Host "Executable built successfully!"
+        } else {
+          Write-Error "Executable not found!"
+          exit 1
+        }
+        
+    - name: Create portable package
+      run: |
+        $packageName = "html_merge_tool_portable"
+        $packageDir = "dist\$packageName"
+        New-Item -ItemType Directory -Path $packageDir -Force
+        Copy-Item -Path "dist\html_merge_tool\*" -Destination $packageDir -Recurse -Force
+        $readmeContent = "HTML合并工具 - 便携版`n`n使用说明:`n1. 双击 html_merge_tool.exe 启动程序`n2. 将包含HTML文件的文件夹拖拽到界面，或点击选择文件夹`n3. 选择输出格式并开始转换`n`n功能特性:`n- 现代化桌面GUI界面`n- 支持拖拽文件夹操作`n- 支持HTML和MHTML输出格式`n- 批量转换功能`n- 实时进度显示`n`n注意事项:`n- 这是一个便携式应用程序，无需安装`n- 首次运行可能需要几秒钟启动时间`n- 如果被杀毒软件误报，请添加到白名单`n`n版本: 1.0.0`n构建时间: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        $readmeContent | Out-File -FilePath "$packageDir\README.txt" -Encoding UTF8
+        Compress-Archive -Path $packageDir -DestinationPath "dist\$packageName.zip" -Force
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: html-merge-tool-portable
+        path: |
+          dist/html_merge_tool_portable.zip
+          dist/html_merge_tool/
+        retention-days: 30
+        
+    - name: Create release
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/html_merge_tool_portable.zip
+        tag_name: v${{ github.run_number }}
+        name: HTML Merge Tool v${{ github.run_number }}
+        body: |
+          ## HTML合并工具 v${{ github.run_number }}
+          
+          ### 新功能
+          - 现代化桌面GUI界面 (PyQt5)
+          - 支持拖拽文件夹操作
+          - 支持HTML和MHTML输出格式
+          - 批量转换功能
+          - 实时进度显示和日志
+          - 响应式设计，适配不同窗口尺寸
+          
+          ### 下载
+          - 便携版: 下载zip文件并解压，双击exe文件即可运行
+          
+          ### 系统要求
+          - Windows 10/11
+          - 无需安装Python或.NET
+          
+          ### 使用说明
+          1. 下载并解压zip文件
+          2. 双击 `html_merge_tool.exe` 启动程序
+          3. 将包含HTML文件的文件夹拖拽到界面，或点击选择文件夹
+          4. 选择输出格式并开始转换
+          
+          ### 界面特性
+          - 现代化设计风格
+          - 响应式布局
+          - 拖拽支持
+          - 实时进度显示
+          - 详细的操作日志
+          
+          ### 注意事项
+          - 首次运行可能需要几秒钟启动时间
+          - 如果被杀毒软件误报，请添加到白名单
+          
+          ### 构建信息
+          - 构建时间: ${{ github.event.head_commit.timestamp }}
+          - 提交: ${{ github.sha }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
