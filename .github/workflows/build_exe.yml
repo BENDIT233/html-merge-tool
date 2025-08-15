@@ -1,66 +1,100 @@
+# GitHub Actions 工作流配置文件
+# 用于自动构建 Windows 可执行文件
+
 name: Build Windows Executable
 
+# 工作流触发条件
 on:
+  # 允许手动触发工作流
   workflow_dispatch:
+  # 当代码推送到 main 分支时触发
   push:
     branches: [ main ]
+  # 当有针对 main 分支的拉取请求时触发
   pull_request:
     branches: [ main ]
 
+# 定义工作流中的任务(jobs)
 jobs:
+  # 定义一个名为 'build' 的任务
   build:
+    # 指定任务运行的操作系统环境
     runs-on: windows-latest
 
+    # 任务步骤列表
     steps:
+    # 步骤1: 检出代码
     - name: Checkout code
+      # 使用官方的 checkout 动作，用于从 GitHub 仓库检出代码
       uses: actions/checkout@v4
 
+    # 步骤2: 设置 Python 环境
     - name: Set up Python
+      # 使用官方的 setup-python 动作，用于安装指定版本的 Python
       uses: actions/setup-python@v4
       with:
+        # 指定要安装的 Python 版本
         python-version: '3.9'
 
+    # 步骤3: 安装依赖
     - name: Install dependencies
+      # 在 PowerShell 中运行命令
       run: |
+        # 升级 pip 到最新版本
         python -m pip install --upgrade pip
+        # 安装项目依赖
         pip install -r requirements.txt
+        # 安装 PyInstaller 用于打包
         pip install pyinstaller
+        # 输出安装成功信息
         echo "Dependencies installed successfully"
 
+    # 步骤4: 构建可执行文件
     - name: Build executable
       run: |
-        # Build windowed version
+        # 使用 PyInstaller 打包应用程序
+        # --onedir: 生成一个目录而不是单个文件
+        # --windowed: 生成窗口应用程序，不显示控制台
+        # --noupx: 禁用 UPX 压缩
+        # --clean: 清理之前的构建缓存
         pyinstaller --onedir --windowed --noupx --clean app.py
-        if (Test-Path "dist/app.exe") {
+        
+        # 检查可执行文件是否生成成功
+        if (Test-Path "dist/app/app.exe") {
           echo "Executable built successfully"
-          # Rename the executable
-          Rename-Item -Path "dist/app.exe" -NewName "html_merge_tool.exe"
+          # 重命名可执行文件
+          Rename-Item -Path "dist/app/app.exe" -NewName "html_merge_tool.exe"
         } else {
           echo "Failed to build executable"
-          # List current directory structure for debugging
+          # 列出当前目录结构用于调试
           Get-ChildItem -Path . -Recurse
           exit 1
         }
 
+    # 步骤5: 测试可执行文件
     - name: Test executable
       run: |
-        # Find the executable in the dist directory
+        # 在 dist 目录中查找可执行文件
         $exePath = Get-ChildItem -Path dist -Filter "html_merge_tool.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
         
         if ($exePath -and (Test-Path $exePath)) {
           Write-Host "Testing executable at: $exePath"
-          # For GUI applications, we can't easily test via command line
-          # We'll just verify the file exists and is executable
+          # 对于GUI应用程序，无法通过命令行轻松测试
+          # 我们只验证文件存在且是可执行的
           echo "Executable test passed"
         } else {
           echo "Executable not found in dist directory"
-          # List contents of dist for debugging
+          # 列出 dist 目录内容用于调试
           Get-ChildItem -Path dist -Recurse
           exit 1
         }
 
+    # 步骤6: 上传构建产物
     - name: Upload artifact
+      # 使用官方的 upload-artifact 动作，用于上传构建产物
       uses: actions/upload-artifact@v4
       with:
+        # 上传产物的名称
         name: html-merge-tool-exe
-        path: dist/html_merge_tool.exe
+        # 要上传的文件路径
+        path: dist/app/html_merge_tool.exe

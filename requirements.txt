@@ -1,9 +1,38 @@
+# 项目依赖包列表
+# 以下是项目运行所需的Python依赖包及其版本
+
+# Pillow: 用于图像处理，支持打开、操作和保存多种图像格式
+# 版本锁定为9.2.0以确保兼容性
 Pillow==9.2.0
+
+# pythonnet: 提供Python和.NET之间的互操作性
+# 用于在Python中调用.NET框架，特别是Avalonia UI相关功能
+# 版本锁定为3.0.5以确保与项目使用的.NET版本兼容
 pythonnet==3.0.5
 
-# tkinter通常是Python标准库的一部分，不需要额外安装
-# 在某些Linux发行版中，可能需要安装python3-tk包
-# 例如: sudo apt-get install python3-tk
+# eel: 用于创建桌面应用程序的Python库
+# 提供基于Web技术的GUI界面功能
+# 版本锁定为0.16.0以确保稳定性
+
+eel==0.16.0
+
+# 其他依赖说明:
+# - tkinter: 通常是Python标准库的一部分，不需要额外安装
+#   在某些Linux发行版中，可能需要安装python3-tk包
+#   例如: sudo apt-get install python3-tk
 
 # 运行Avalonia UI界面还需要安装.NET SDK
-# 请从官方网站下载并安装: https://dotnet.microsoft.com/download
+# .NET SDK是运行和构建Avalonia应用程序的必要条件
+# 请从官方网站下载并安装适合您操作系统的版本:
+# https://dotnet.microsoft.com/download
+
+# 安装依赖说明:
+# 1. 使用pip安装上述依赖:
+#    pip install -r requirements.txt
+# 2. 确保已安装.NET SDK
+# 3. 对于Windows用户，可能需要安装Visual C++ Redistributable
+
+# 注意事项:
+# - 建议使用虚拟环境来隔离项目依赖
+# - 如果遇到依赖冲突，可以尝试创建新的虚拟环境并重新安装
+# - 对于特定版本的依赖，如果需要升级，请先测试兼容性
